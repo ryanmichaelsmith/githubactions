@@ -1,0 +1,60 @@
+name: Deploy Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: Branch or tag to deploy
+        required: false
+        default: main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Deploy to Prod
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref }}
+      - name: Ensure branch is up to date
+        run: git pull --rebase origin ${{ inputs.target_ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
+          virtualenvs-in-project: true
+          virtualenvs-create: true
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+      - name: Bump minor version
+        run: |
+          poetry version minor
+          NEW_VERSION=$(poetry version -s)
+          echo "VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
+      - name: Simulate production deployment
+        run: poetry run python scripts/deploy.py prod --version "$VERSION"
+      - name: Commit release version
+        run: |
+          if git diff --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git add pyproject.toml
+          if [ -f poetry.lock ]; then
+            git add poetry.lock
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "release: cut $VERSION"
+          git tag "v$VERSION"
+          git push origin HEAD:${{ inputs.target_ref }}
+          git push origin "v$VERSION"

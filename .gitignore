@@ -5,3 +5,6 @@ __pycache__/
 # Testing artifacts
 .pytest_cache/
 
+# Poetry
+.venv/
+.poetry_cache/

@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "githubactions"
+version = "0.1.0"
+description = "Hello World application used to demonstrate multi-stage GitHub Actions workflows."
+authors = ["Ryan Michaelsmith <ryanmichaelsmith@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

@@ -1,33 +1,37 @@
 # GitHub Actions Hello World
 
-This repository demonstrates a minimal Python “Hello, World!” application paired with a multi-stage GitHub Actions workflow.
+This repository demonstrates a minimal Python “Hello, World!” application paired with a GitHub Actions-based deployment pipeline.
 
 ## Application
 
 - `app/main.py` exposes a simple `hello()` function and prints the greeting when executed directly.
-- `tests/test_main.py` contains a single unit test that verifies the greeting text.
+- `app.get_version()` attempts to read the installed package version and falls back to `0.0.0` when run locally.
+- `tests/test_main.py` verifies both behaviours.
 
 ### Run locally
 
 ```bash
-python -m app.main
+poetry install
+poetry run python -m app.main
 ```
 
 ### Run tests
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-pytest
+poetry run pytest
 ```
 
-## CI/CD pipeline
+## Versioning
 
-The workflow in `.github/workflows/deploy.yml` performs three stages on pushes to `main` or manual dispatch:
+Project metadata and dependency management are handled by Poetry (`pyproject.toml`). Automated workflows use `poetry version` to manage semantic version numbers:
 
-1. `build-and-test`: Install dependencies and run the unit tests.
-2. `deploy-test`: Simulated deployment to a `test` environment once the build succeeds.
-3. `deploy-prod`: Promotion to `prod` after `deploy-test`, requiring an environment approval gate.
+- Manual deployments to the **test** environment bump the patch/build version.
+- Manual deployments to **prod** bump the minor version and create a matching `v<version>` tag.
 
-Configure the `prod` environment in GitHub with required reviewers to enforce the manual approval step. You can add environment secrets (e.g. `TEST_DEPLOY_TOKEN`, `PROD_DEPLOY_TOKEN`) if needed for real deployments.
+## GitHub Actions workflows
+
+- `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests. It installs dependencies via Poetry and runs the unit tests.
+- `.github/workflows/deploy-test.yml` is triggered manually (`workflow_dispatch`). It bumps the patch version, runs the simulated test deployment, commits the version change, and pushes it back to the selected branch.
+- `.github/workflows/deploy-prod.yml` is also manual and targets the `prod` environment. After approval, it bumps the minor version, runs the simulated production deployment, commits, tags the release, and pushes both the branch and tag.
+
+Configure the `prod` environment in GitHub with required reviewers to enforce the approval gate before production deployments. Add environment secrets (e.g., `TEST_DEPLOY_TOKEN`, `PROD_DEPLOY_TOKEN`) as needed for real deployments.
