@@ -34,20 +34,10 @@ jobs:
       - name: Simulate test deployment
         run: python scripts/deploy.py test
 
-  approve-prod:
-    name: Await Prod Approval
-    runs-on: ubuntu-latest
-    needs: deploy-test
-    environment:
-      name: prod
-    steps:
-      - name: Pending approval
-        run: echo "Awaiting production deployment approval"
-
   deploy-prod:
     name: Deploy to Prod
     runs-on: ubuntu-latest
-    needs: approve-prod
+    needs: deploy-test
     environment:
       name: prod
     steps:
