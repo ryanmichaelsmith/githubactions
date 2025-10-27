@@ -35,3 +35,5 @@ Project metadata and dependency management are handled by Poetry (`pyproject.tom
 - `.github/workflows/deploy-prod.yml` is also manual and targets the `prod` environment. After approval, it verifies the deployment is running from `main`, ensures the matching `test/v<version>` tag exists on the same commit, bumps the minor version, runs the simulated production deployment, commits, tags the release, and pushes both the branch and tag.
 
 Configure the `prod` environment in GitHub with required reviewers to enforce the approval gate before production deployments. Add environment secrets (e.g., `TEST_DEPLOY_TOKEN`, `PROD_DEPLOY_TOKEN`) as needed for real deployments.
+
+test
